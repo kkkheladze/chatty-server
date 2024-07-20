@@ -31,7 +31,7 @@ export class ConversationsController {
   }
 
   @Post(':conversationId/messages')
-  async sendMessage(@Body() message: MessageDTO) {
-    return this.conversationsService.sendMessage(message);
+  async sendMessage(@Param('conversationId') conversationId: string, @Body() message: MessageDTO) {
+    return this.conversationsService.sendMessage(conversationId, message);
   }
 }

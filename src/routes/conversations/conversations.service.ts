@@ -42,7 +42,7 @@ export class ConversationsService {
 
   async getAllConversations(userId: string, populate: boolean) {
     return this.conversationModel
-      .find({ users: userId }, undefined, { populate: populate && 'users', sort: { updatedAt: -1 } })
+      .find({ users: userId }, undefined, { populate: populate && ['users', 'lastMessage'], sort: { updatedAt: -1 } })
       .exec();
   }
 
@@ -54,9 +54,8 @@ export class ConversationsService {
     return this.messageModel.find({ conversationId }).sort({ sentAt: -1 }).skip(offset).limit(limit).exec();
   }
 
-  async sendMessage(messageToSend: MessageDTO) {
-    const { conversationId, senderId, text } = messageToSend;
-
+  async sendMessage(conversationId: string, messageToSend: MessageDTO) {
+    console.log(conversationId, messageToSend);
     const conversation = await this.conversationModel.findById(conversationId);
     if (!conversation) {
       throw new NotFoundException(`Conversation with ID ${conversationId} not found`);
@@ -64,8 +63,7 @@ export class ConversationsService {
 
     const newMessage = new this.messageModel({
       conversationId,
-      senderId,
-      text,
+      ...messageToSend,
     });
 
     const message = await newMessage.save();

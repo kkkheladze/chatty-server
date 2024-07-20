@@ -15,7 +15,6 @@ export class Message {
 }
 
 export class MessageDTO {
-  conversationId: string;
   senderId: string;
   text: string;
 }
