@@ -1,9 +1,8 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserDocument, UserDTO } from 'src/users/schemas/user';
 import * as bcrypt from 'bcrypt';
-
-import { UsersService } from 'src/users/users.service';
+import { UserDTO, UserDocument } from '../users/schemas/user';
+import { UsersService } from '../users/users.service';
 
 export type Credentials = { email: string; password: string };
 export type TokenContent = { _id: string; email: string; name: string; lastName: string; exp: number; iat: number };
@@ -88,7 +87,7 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwt.signAsync(userInfo, {
-        expiresIn: '5m',
+        expiresIn: '30m',
         secret: process.env.ACCESS_TOKEN_SECRET,
       }),
       this.jwt.signAsync(userInfo, {

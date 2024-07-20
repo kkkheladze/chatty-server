@@ -4,7 +4,7 @@ import { ConversationsService } from './conversations.service';
 import { Conversation, ConversationSchema } from './schemas/conversation';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Message, MessageSchema } from './schemas/message';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [

@@ -1,8 +1,8 @@
 import { Body, Controller, ForbiddenException, HttpCode, HttpStatus, Post, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { Public } from 'src/core/decorators/public.decorator';
-import { UserDTO } from 'src/users/schemas/user';
 import { AuthService, Credentials } from './auth.service';
+import { UserDTO } from '../users/schemas/user';
 
 @Controller('auth')
 export class AuthController {

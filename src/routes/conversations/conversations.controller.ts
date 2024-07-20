@@ -3,7 +3,7 @@ import { ConversationsService } from './conversations.service';
 import { MessageDTO } from './schemas/message';
 import { ConversationDTO } from './schemas/conversation';
 import { User } from 'src/core/decorators/user.decorator';
-import { TokenContent } from 'src/auth/auth.service';
+import { TokenContent } from 'src/routes/auth/auth.service';
 
 @Controller('conversations')
 export class ConversationsController {

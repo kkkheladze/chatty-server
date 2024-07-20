@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
-import { User } from 'src/users/schemas/user';
 import { Message } from './message';
+import { User } from 'src/routes/users/schemas/user';
 
 export type ConversationDocument = HydratedDocument<Conversation>;
 

@@ -7,6 +7,10 @@ import { User, UserDocument, UserDTO } from './schemas/user';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
+  add(user: UserDTO): Promise<UserDocument> {
+    return new this.userModel(user).save();
+  }
+
   getByProps(prop: Partial<User>): Promise<UserDocument> {
     return this.userModel.findOne(prop).exec();
   }
@@ -24,10 +28,6 @@ export class UsersService {
         { refreshToken: 0, __v: 0 },
       )
       .exec();
-  }
-
-  add(user: UserDTO): Promise<UserDocument> {
-    return new this.userModel(user).save();
   }
 
   getAll(): Promise<UserDocument[]> {

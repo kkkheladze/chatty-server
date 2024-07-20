@@ -10,7 +10,7 @@ export class User {
   @Prop({ required: true }) name: string;
   @Prop({ required: true }) lastName: string;
   @Prop() refreshToken: string;
-  @Prop() avatar: string;
+  @Prop() avatar: Buffer;
 }
 
 export class UserDTO {
