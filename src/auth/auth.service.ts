@@ -1,11 +1,12 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { UserDocument, UserDTO } from 'src/users/schemas/user';
 import * as bcrypt from 'bcrypt';
-import { Request, Response } from 'express';
-import { User } from 'src/core/schemas/user';
+
 import { UsersService } from 'src/users/users.service';
 
 export type Credentials = { email: string; password: string };
+export type TokenContent = { _id: string; email: string; name: string; lastName: string; exp: number; iat: number };
 
 @Injectable()
 export class AuthService {
@@ -14,38 +15,29 @@ export class AuthService {
     private jwt: JwtService,
   ) {}
 
-  async login(credentials: Credentials, response: Response) {
+  async login(credentials: Credentials) {
     if (!(credentials.email && credentials.password)) throw new BadRequestException('Email and password must be provided');
 
-    const user = await this.usersService.get({ email: credentials.email });
+    const user = await this.usersService.getByProps({ email: credentials.email });
     if (!user) throw new NotFoundException('User not found');
 
     const passwordsMatch: boolean = await bcrypt.compare(credentials.password, user.password);
-
     if (!passwordsMatch) throw new NotFoundException('User not found');
 
     const { accessToken, refreshToken } = await this.generateAccessAndRefreshTokenPair(user);
-
     user.refreshToken = refreshToken;
-
     await user.save();
-
-    response.cookie('refresh-token', refreshToken, {
-      httpOnly: true,
-      secure: true,
-    });
-
-    response.send(accessToken);
+    return { accessToken, refreshToken };
   }
 
-  async register(newUser: User, response: Response) {
+  async register(newUser: UserDTO) {
     if (!newUser.email || !newUser.password) throw new BadRequestException('Email and password must be provided');
 
     try {
       const encryptedPassword = await bcrypt.hash(newUser.password, 10);
       const user = await this.usersService.add({
         ...newUser,
-        email: newUser.email.toLowerCase(),
+        email: newUser.email,
         password: encryptedPassword,
       });
 
@@ -53,29 +45,20 @@ export class AuthService {
 
       user.refreshToken = refreshToken;
       await user.save();
-
-      response.cookie('refresh-token', refreshToken, {
-        httpOnly: true,
-        secure: true,
-      });
-      response.send(accessToken);
+      return { accessToken, refreshToken };
     } catch (e) {
       throw new BadRequestException(e.message);
     }
   }
 
-  async refreshToken(request: Request, response: Response) {
-    const token = request.cookies['refresh-token'];
-    if (!token) throw new UnauthorizedException('No token provided');
-
-    response.clearCookie('refresh-token', { httpOnly: true, secure: true });
-    const user = await this.usersService.get({ refreshToken: token });
+  async refreshToken(token: string) {
+    const user = await this.usersService.getByProps({ refreshToken: token });
 
     try {
-      const decoded = await this.jwt.verifyAsync(token, { secret: process.env.REFRESH_TOKEN_SECRET });
+      const decoded: TokenContent = await this.jwt.verifyAsync(token, { secret: process.env.REFRESH_TOKEN_SECRET });
       if (!user) {
         // Token reused
-        const hackedUser = await this.usersService.get({ email: decoded.userInfo.email });
+        const hackedUser = await this.usersService.getById(decoded._id);
         if (hackedUser) {
           hackedUser.refreshToken = null;
           await hackedUser.save();
@@ -84,45 +67,35 @@ export class AuthService {
       } else {
         // Refresh token still valid
         const { accessToken, refreshToken } = await this.generateAccessAndRefreshTokenPair(user);
-
-        // Saving refreshToken with current user
         user.refreshToken = refreshToken;
         await user.save();
-
-        // Creates Secure Cookie with refresh token
-        response.cookie('refresh-token', refreshToken, {
-          httpOnly: true,
-          secure: true,
-          maxAge: 24 * 60 * 60 * 1000, // 24H
-        });
-        response.send(accessToken);
+        return { accessToken, refreshToken };
       }
     } catch {
-      if (!user) throw new ForbiddenException();
       user.refreshToken = null;
       await user.save();
+      throw new ForbiddenException();
     }
   }
 
-  private async generateAccessAndRefreshTokenPair({ name, lastName, email }: User) {
+  async generateAccessAndRefreshTokenPair({ name, lastName, email, _id }: UserDocument) {
     const userInfo = {
+      _id,
       email,
       name,
       lastName,
     };
 
-    const accessToken: string = await this.jwt.signAsync(userInfo, {
-      expiresIn: '5m',
-      secret: process.env.ACCESS_TOKEN_SECRET,
-    });
-
-    const refreshToken: string = await this.jwt.signAsync(
-      { userInfo },
-      {
-        expiresIn: '1d',
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwt.signAsync(userInfo, {
+        expiresIn: '5m',
+        secret: process.env.ACCESS_TOKEN_SECRET,
+      }),
+      this.jwt.signAsync(userInfo, {
+        expiresIn: '7d',
         secret: process.env.REFRESH_TOKEN_SECRET,
-      },
-    );
+      }),
+    ]);
     return { accessToken, refreshToken };
   }
 }

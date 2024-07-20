@@ -1,19 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from '../core/schemas/user';
+import { User, UserDocument, UserDTO } from './schemas/user';
 
 @Injectable()
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  get(prop: Partial<User>): Promise<UserDocument> {
+  getByProps(prop: Partial<User>): Promise<UserDocument> {
     return this.userModel.findOne(prop).exec();
   }
 
-  add(user: User): Promise<UserDocument> {
-    const newUser = new this.userModel(user);
-    return newUser.save();
+  getById(id: string): Promise<UserDocument> {
+    return this.userModel.findById(id).exec();
+  }
+
+  getByQuery(search: string): Promise<UserDocument[]> {
+    return this.userModel
+      .find(
+        {
+          $or: [{ name: { $regex: search, $options: 'i' } }, { email: { $regex: search, $options: 'i' } }, { lastName: { $regex: search, $options: 'i' } }],
+        },
+        { refreshToken: 0, __v: 0 },
+      )
+      .exec();
+  }
+
+  add(user: UserDTO): Promise<UserDocument> {
+    return new this.userModel(user).save();
   }
 
   getAll(): Promise<UserDocument[]> {
