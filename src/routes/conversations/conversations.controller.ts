@@ -1,9 +1,8 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { ConversationsService } from './conversations.service';
-import { MessageDTO } from './schemas/message';
-import { ConversationDTO } from './schemas/conversation';
+import { Body, Controller, Get, Param, ParseBoolPipe, ParseIntPipe, Post, Query } from '@nestjs/common';
 import { User } from 'src/core/decorators/user.decorator';
-import { TokenContent } from 'src/routes/auth/auth.service';
+import { ConversationsService } from './conversations.service';
+import { ConversationDTO } from './schemas/conversation';
+import { MessageDTO } from './schemas/message';
 
 @Controller('conversations')
 export class ConversationsController {
@@ -15,12 +14,19 @@ export class ConversationsController {
   }
 
   @Get()
-  async getAllConversations(@User() user: TokenContent) {
-    return this.conversationsService.getAllConversations(user._id);
+  async getAllConversations(
+    @Query('populate', new ParseBoolPipe({ optional: true })) populate: boolean = false,
+    @User('_id') userId: string,
+  ) {
+    return this.conversationsService.getAllConversations(userId, populate);
   }
 
   @Get(':conversationId/messages')
-  async getMessages(@Param('conversationId') conversationId: string, @Query('limit') limit: number = 50, @Query('offset') offset: number = 0) {
+  async getMessages(
+    @Param('conversationId') conversationId: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 50,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset: number = 0,
+  ) {
     return this.conversationsService.getMessages(conversationId, limit, offset);
   }
 

@@ -1,14 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument, Types, Schema as MongoSchema } from 'mongoose';
 import { Message } from './message';
 import { User } from 'src/routes/users/schemas/user';
 
 export type ConversationDocument = HydratedDocument<Conversation>;
 
-@Schema({ timestamps: true })
+@Schema({ versionKey: false })
 export class Conversation {
-  @Prop({ required: true, type: [{ type: Types.ObjectId, ref: User.name }] }) users: Types.ObjectId[];
-  @Prop({ type: Types.ObjectId, ref: Message.name }) lastMessage: Types.ObjectId;
+  @Prop({ type: [{ type: MongoSchema.Types.ObjectId, ref: User.name, required: true }] }) users: User[];
+  @Prop({ type: MongoSchema.Types.ObjectId, ref: Message.name }) lastMessage: Message;
   @Prop({ default: Date.now }) updatedAt: Date;
 }
 

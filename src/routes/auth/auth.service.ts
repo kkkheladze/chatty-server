@@ -15,7 +15,8 @@ export class AuthService {
   ) {}
 
   async login(credentials: Credentials) {
-    if (!(credentials.email && credentials.password)) throw new BadRequestException('Email and password must be provided');
+    if (!(credentials.email && credentials.password))
+      throw new BadRequestException('Email and password must be provided');
 
     const user = await this.usersService.getByProps({ email: credentials.email });
     if (!user) throw new NotFoundException('User not found');

@@ -19,13 +19,18 @@ export class UsersService {
     return this.userModel.findById(id).exec();
   }
 
-  getByQuery(search: string): Promise<UserDocument[]> {
+  getByQuery(search: string, excludeSelf: boolean, userId: string): Promise<UserDocument[]> {
     return this.userModel
       .find(
         {
-          $or: [{ name: { $regex: search, $options: 'i' } }, { email: { $regex: search, $options: 'i' } }, { lastName: { $regex: search, $options: 'i' } }],
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+            { lastName: { $regex: search, $options: 'i' } },
+          ],
+          _id: { $ne: excludeSelf ? userId : null },
         },
-        { refreshToken: 0, __v: 0 },
+        { refreshToken: 0 },
       )
       .exec();
   }

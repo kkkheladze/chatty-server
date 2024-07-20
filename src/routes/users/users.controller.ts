@@ -1,5 +1,6 @@
-import { Controller, Get, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, ParseBoolPipe, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { User } from 'src/core/decorators/user.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -7,7 +8,11 @@ export class UsersController {
 
   @HttpCode(HttpStatus.OK)
   @Get()
-  getUserByQuery(@Query('search') search: string = '') {
-    return this.usersService.getByQuery(search);
+  getUserByQuery(
+    @User('_id') userId: string,
+    @Query('search') search: string = '',
+    @Query('excludeSelf', new ParseBoolPipe({ optional: true })) excludeSelf: boolean = true,
+  ) {
+    return this.usersService.getByQuery(search, excludeSelf, userId);
   }
 }

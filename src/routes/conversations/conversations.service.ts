@@ -16,11 +16,11 @@ export class ConversationsService {
   async createConversation(conversationDTO: ConversationDTO) {
     try {
       const { users } = conversationDTO;
-
       if (users.length !== 2) throw new ConflictException('Conversation can only be created between two users');
 
       const [user1, user2] = await Promise.all(users.map((userId) => this.usersService.getById(userId)));
       if (!user1 || !user2) throw new NotFoundException('One or more users not found');
+      if (user1._id === user2._id) throw new ConflictException('Cannot create conversation with yourself');
 
       const existingConversation = await this.conversationModel.findOne({
         users: {
@@ -29,7 +29,8 @@ export class ConversationsService {
       });
       if (existingConversation) throw new ConflictException('Conversation already exists');
 
-      return new this.conversationModel({ users: users }).save();
+      const conversation = await new this.conversationModel({ users: users }).save();
+      return this.conversationModel.findById(conversation._id, undefined, { populate: 'users' }).exec();
     } catch (e) {
       if (e instanceof ConflictException || e instanceof NotFoundException) throw e;
       else {
@@ -39,11 +40,13 @@ export class ConversationsService {
     }
   }
 
-  async getAllConversations(userId: string) {
-    return this.conversationModel.find({ users: userId }).sort({ updatedAt: 1 }).populate('users').exec();
+  async getAllConversations(userId: string, populate: boolean) {
+    return this.conversationModel
+      .find({ users: userId }, undefined, { populate: populate && 'users', sort: { updatedAt: -1 } })
+      .exec();
   }
 
-  async getMessages(conversationId: string, limit: number = 50, offset: number = 0): Promise<Message[]> {
+  async getMessages(conversationId: string, limit: number, offset: number) {
     const conversationExists = await this.conversationModel.exists({ _id: conversationId });
 
     if (!conversationExists) throw new NotFoundException(`Conversation with ID ${conversationId} not found`);
@@ -66,8 +69,10 @@ export class ConversationsService {
     });
 
     const message = await newMessage.save();
-    conversation.lastMessage = message._id;
-    conversation.updatedAt = message.sentAt;
+    conversation.set({
+      lastMessage: message._id,
+      updatedAt: message.sentAt,
+    });
     await conversation.save();
 
     return message;
