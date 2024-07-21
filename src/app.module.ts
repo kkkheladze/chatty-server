@@ -4,13 +4,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './routes/auth/auth.module';
 import { AvatarsModule } from './routes/avatars/avatars.module';
-import { ConversationsModule } from './routes/conversations/conversations.module';
 import { AuthGuard } from './core/guards/auth.guard';
 import { UsersModule } from './routes/users/users.module';
+import { ChatModule } from './routes/chat/chat.module';
 
 @Module({
   imports: [
@@ -28,11 +26,12 @@ import { UsersModule } from './routes/users/users.module';
     MongooseModule.forRoot(process.env.MONGO_URI, { dbName: 'chatty' }),
     AuthModule,
     UsersModule,
-    ConversationsModule,
-    ConversationsModule,
+    ChatModule,
     AvatarsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, { provide: APP_GUARD, useClass: AuthGuard }, { provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

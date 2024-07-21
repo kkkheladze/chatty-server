@@ -6,7 +6,7 @@ import { buffer } from 'stream/consumers';
 
 @Injectable()
 export class AvatarsService {
-  constructor(@InjectModel(Avatar.name) private avatarModel: Model<Avatar>) {}
+  constructor(@InjectModel('Avatar') private avatarModel: Model<Avatar>) {}
 
   async uploadAvatar(userId: string, buffer: Buffer) {
     const existingAvatar = await this.avatarModel.findOne({ userId });

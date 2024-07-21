@@ -5,7 +5,7 @@ import { AvatarsService } from './avatars.service';
 import { Avatar, AvatarSchema } from './schemas/avatar';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Avatar.name, schema: AvatarSchema }])],
+  imports: [MongooseModule.forFeature([{ name: 'Avatar', schema: AvatarSchema }])],
   controllers: [AvatarsController],
   providers: [AvatarsService],
 })

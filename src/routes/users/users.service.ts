@@ -5,7 +5,7 @@ import { User, UserDocument, UserDTO } from './schemas/user';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(@InjectModel('User') private userModel: Model<User>) {}
 
   add(user: UserDTO): Promise<UserDocument> {
     return new this.userModel(user).save();

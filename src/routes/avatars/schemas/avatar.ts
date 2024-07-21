@@ -6,7 +6,7 @@ export type AvatarDocument = HydratedDocument<Avatar>;
 
 @Schema({ versionKey: false })
 export class Avatar {
-  @Prop({ type: MongoSchema.Types.ObjectId, ref: User.name, required: true, unique: true })
+  @Prop({ type: MongoSchema.Types.ObjectId, ref: 'User', required: true, unique: true })
   userId: MongoSchema.Types.ObjectId;
   @Prop({ required: true }) image: string;
 }
