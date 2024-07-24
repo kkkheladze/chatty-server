@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { Avatar } from './schemas/avatar';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { buffer } from 'stream/consumers';
 
 @Injectable()
 export class AvatarsService {

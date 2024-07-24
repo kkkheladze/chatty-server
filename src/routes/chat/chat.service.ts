@@ -1,9 +1,10 @@
 import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { UsersService } from '../users/users.service';
 import { Chat, ChatDTO } from './schemas/chat';
 import { Message, MessageDTO } from './schemas/message';
-import { UsersService } from '../users/users.service';
+import { ChatGateway } from './chat.gateway';
 
 @Injectable()
 export class ChatService {
@@ -11,6 +12,7 @@ export class ChatService {
     @InjectModel('Chat') private chatModel: Model<Chat>,
     @InjectModel('Message') private readonly messageModel: Model<Message>,
     private usersService: UsersService,
+    private chatGateway: ChatGateway,
   ) {}
 
   async createChat(chatDTO: ChatDTO) {
@@ -71,7 +73,7 @@ export class ChatService {
       updatedAt: message.sentAt,
     });
     await chat.save();
-
+    this.chatGateway.sendMessage('new-message', message);
     return message;
   }
 }

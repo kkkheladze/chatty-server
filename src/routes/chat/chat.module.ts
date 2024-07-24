@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ChatController } from './chat.controller';
-import { ChatService } from './chat.service';
-import { Chat, ChatSchema } from './schemas/chat';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Message, MessageSchema } from './schemas/message';
 import { UsersModule } from '../users/users.module';
+import { ChatController } from './chat.controller';
+import { ChatGateway } from './chat.gateway';
+import { ChatService } from './chat.service';
+import { ChatSchema } from './schemas/chat';
+import { MessageSchema } from './schemas/message';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { UsersModule } from '../users/users.module';
     ]),
   ],
   controllers: [ChatController],
-  providers: [ChatService],
-  exports: [ChatService],
+  providers: [ChatService, ChatGateway],
+  exports: [ChatService, ChatGateway],
 })
 export class ChatModule {}
