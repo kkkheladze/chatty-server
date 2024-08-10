@@ -22,4 +22,8 @@ export class AvatarsService {
     if (!avatar) return null;
     return Buffer.from(avatar.image, 'base64');
   }
+
+  deleteAvatar(userId: string) {
+    return this.avatarModel.deleteOne({ userId });
+  }
 }

@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongoSchema } from 'mongoose';
-import { User } from 'src/routes/users/schemas/user';
 
 export type AvatarDocument = HydratedDocument<Avatar>;
 

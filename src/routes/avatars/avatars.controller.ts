@@ -1,4 +1,14 @@
-import { Controller, Get, NotFoundException, Post, Query, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  NotFoundException,
+  Post,
+  Query,
+  Res,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from 'src/core/decorators/user.decorator';
 import { AvatarsService } from './avatars.service';
@@ -20,5 +30,10 @@ export class AvatarsController {
     if (!buffer) throw new NotFoundException('Avatar not found');
     response.setHeader('Content-Type', 'application/octet-stream');
     response.send(buffer);
+  }
+
+  @Delete()
+  deleteAvatar(@User('_id') userId: string) {
+    return this.avatarsService.deleteAvatar(userId);
   }
 }
