@@ -4,18 +4,17 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AuthGuard } from './core/guards/auth.guard';
 import { AuthModule } from './routes/auth/auth.module';
 import { AvatarsModule } from './routes/avatars/avatars.module';
-import { AuthGuard } from './core/guards/auth.guard';
-import { UsersModule } from './routes/users/users.module';
 import { ChatModule } from './routes/chat/chat.module';
+import { UsersModule } from './routes/users/users.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET,
     }),
     ThrottlerModule.forRoot([
       {
