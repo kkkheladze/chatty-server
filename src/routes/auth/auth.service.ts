@@ -78,6 +78,13 @@ export class AuthService {
     }
   }
 
+  async logout(userId: string) {
+    const user = await this.usersService.getById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    user.refreshToken = null;
+    await user.save();
+  }
+
   async generateAccessAndRefreshTokenPair({ name, lastName, email, _id }: UserDocument) {
     const userInfo = {
       _id,
