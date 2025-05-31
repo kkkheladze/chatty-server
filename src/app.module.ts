@@ -6,6 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthGuard } from './core/guards/auth.guard';
 import { AuthModule } from './routes/auth/auth.module';
+import { AuthService } from './routes/auth/auth.service';
 import { AvatarsModule } from './routes/avatars/avatars.module';
 import { ChatModule } from './routes/chat/chat.module';
 import { UsersModule } from './routes/users/users.module';
@@ -31,6 +32,7 @@ import { UsersModule } from './routes/users/users.module';
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
+    AuthService,
   ],
 })
 export class AppModule {}

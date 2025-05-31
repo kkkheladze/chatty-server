@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
-import { Request } from 'express';
+import { AuthService } from 'src/routes/auth/auth.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 @Injectable()
@@ -9,6 +9,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
+    private authService: AuthService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -18,21 +19,26 @@ export class AuthGuard implements CanActivate {
     ]);
     if (isPublic) return true;
 
-    const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromCookies(request);
-    if (!token) {
+    const http = context.switchToHttp();
+    const request = http.getRequest();
+    const { accessToken, refreshToken } = this.authService.getTokensFromCookies(request);
+    if (!accessToken) {
       throw new UnauthorizedException();
     }
     try {
-      const payload = await this.jwtService.verifyAsync(token, { secret: process.env.ACCESS_TOKEN_SECRET });
+      const payload = await this.jwtService.verifyAsync(accessToken, { secret: process.env.ACCESS_TOKEN_SECRET });
       request['user'] = payload;
     } catch {
-      throw new UnauthorizedException();
+      const response = http.getResponse();
+      try {
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+          await this.authService.refreshToken(refreshToken);
+        this.authService.saveTokensInCookies(response, newAccessToken, newRefreshToken);
+      } catch {
+        this.authService.removeTokensFromCookies(response);
+        throw new UnauthorizedException();
+      }
     }
     return true;
-  }
-
-  private extractTokenFromCookies(request: Request): string | undefined {
-    return request.cookies['access-token'];
   }
 }

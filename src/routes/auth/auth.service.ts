@@ -1,6 +1,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Request, Response } from 'express';
 import { UserDTO, UserDocument } from '../users/schemas/user';
 import { UsersService } from '../users/users.service';
 
@@ -9,6 +10,11 @@ export type TokenContent = { _id: string; email: string; name: string; lastName:
 
 @Injectable()
 export class AuthService {
+  readonly ACCESS_TOKEN_COOKIE = 'access-token';
+  readonly REFRESH_TOKEN_COOKIE = 'refresh-token';
+  readonly ACCESS_TOKEN_AGE = 30 * 60 * 1000; // 30 minutes
+  readonly REFRESH_TOKEN_AGE = 7 * 24 * 60 * 60 * 1000; // 1 week
+
   constructor(
     private usersService: UsersService,
     private jwt: JwtService,
@@ -104,5 +110,30 @@ export class AuthService {
       }),
     ]);
     return { accessToken, refreshToken };
+  }
+
+  saveTokensInCookies(response: Response, accessToken: string, refreshToken: string) {
+    response.cookie(this.ACCESS_TOKEN_COOKIE, accessToken, {
+      httpOnly: true,
+      secure: true,
+      maxAge: this.ACCESS_TOKEN_AGE,
+    });
+    response.cookie(this.REFRESH_TOKEN_COOKIE, refreshToken, {
+      httpOnly: true,
+      secure: true,
+      maxAge: this.REFRESH_TOKEN_AGE,
+    });
+  }
+
+  getTokensFromCookies(request: Request) {
+    return {
+      accessToken: request.cookies[this.ACCESS_TOKEN_COOKIE],
+      refreshToken: request.cookies[this.REFRESH_TOKEN_COOKIE],
+    };
+  }
+
+  removeTokensFromCookies(response: Response) {
+    response.clearCookie(this.ACCESS_TOKEN_COOKIE, { httpOnly: true, secure: true });
+    response.clearCookie(this.REFRESH_TOKEN_COOKIE, { httpOnly: true, secure: true });
   }
 }
